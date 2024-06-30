@@ -1,5 +1,7 @@
 version: '3'
+
 services:
+
   kafka1:
     image: confluentinc/cp-kafka
     container_name: kafka1

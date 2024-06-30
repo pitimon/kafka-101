@@ -13,7 +13,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093'
       KAFKA_LISTENERS: 'PLAINTEXT://kafka-1:9092,CONTROLLER://kafka-1:9093,EXTERNAL://0.0.0.0:19092'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092,EXTERNAL://kafka-1:19092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092,EXTERNAL://localhost:19092'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
@@ -89,16 +89,16 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-1:9092,kafka-2:9092,kafka-3:9092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    networks:
-      - kafka-net  
-    ports:
-      - "8089:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   networks:
+  #     - kafka-net  
+  #   ports:
+  #     - "8089:8080"
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: local
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+  #     KAFKA_CLUSTERS_0_METRICS_PORT: 9997
 
   redpanda-console:
     image: docker.redpanda.com/vectorized/console:latest
@@ -142,13 +142,13 @@ services:
       retries: 5
 
 
-  kafka-tools:
-    image: confluentinc/cp-kafka:latest
-    command: sleep infinity
-    networks:
-      - kafka-net  
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+  # kafka-tools:
+  #   image: confluentinc/cp-kafka:latest
+  #   command: sleep infinity
+  #   networks:
+  #     - kafka-net  
+  #   environment:
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
 
   
 volumes:
