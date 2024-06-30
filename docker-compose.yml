@@ -137,6 +137,11 @@ services:
       KAFKA_CONNECT_ENABLED: "true"
       KAFKA_CONNECT_NAME: "connect-cluster"
       KAFKA_CONNECT_URL: "http://kafka-connect:8083"
+      SCHEMA_REGISTRY_ENABLED: "true"
+      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"  # Adjust the URL as needed
+      SCHEMA_REGISTRY_AUTH: ""  # Set this if you have authentication enabled
+      SCHEMA_REGISTRY_SSL_ENABLED: "false"  # Set to "true" if using HTTPS
+
   
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
