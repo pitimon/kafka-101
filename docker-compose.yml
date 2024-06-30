@@ -138,7 +138,11 @@ services:
       KAFKA_CONNECT_NAME: "connect-cluster"
       KAFKA_CONNECT_URL: "http://kafka-connect:8083"
 
-
+volumes:
+  kafka-data-1:
+  kafka-data-2:
+  kafka-data-3:
+  
 networks:
   kafka-net:
     driver: overlay
