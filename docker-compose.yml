@@ -156,16 +156,19 @@ services:
 
 volumes:
   kafka-data-1:
+    driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${NFS-SERVER},nolock,soft,rw"
       device: ":${PATH-TO-DIR}"
   kafka-data-2:
+    driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${NFS-SERVER},nolock,soft,rw"
       device: ":${PATH-TO-DIR}"
   kafka-data-3:
+    driver: local
     driver_opts:
       type: "nfs"
       o: "addr=${NFS-SERVER},nolock,soft,rw"
