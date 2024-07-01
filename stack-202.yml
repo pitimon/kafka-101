@@ -22,7 +22,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      CLUSTER_ID: 'Da+ynqAV1EnEl8KxmNsAVA=='
+      CLUSTER_ID: 'wMbf6jsjQo-zqXFw4fwERw'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     volumes:
       - kafka-data-1:/var/lib/kafka/data
@@ -47,7 +47,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      CLUSTER_ID: 'Da+ynqAV1EnEl8KxmNsAVA=='
+      CLUSTER_ID: 'wMbf6jsjQo-zqXFw4fwERw'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     volumes:
       - kafka-data-2:/var/lib/kafka/data
@@ -72,7 +72,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      CLUSTER_ID: 'Da+ynqAV1EnEl8KxmNsAVA=='
+      CLUSTER_ID: 'wMbf6jsjQo-zqXFw4fwERw'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     volumes:
       - kafka-data-3:/var/lib/kafka/data
