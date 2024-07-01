@@ -170,7 +170,7 @@ volumes:
     driver: local
     driver_opts:
       type: "nfs"
-      o: "addr=$10.202.1.231,nolock,soft,rw"
+      o: "addr=10.202.1.231,nolock,soft,rw"
       device: ":/var/nfs/general/kafka3"
 
 networks:
