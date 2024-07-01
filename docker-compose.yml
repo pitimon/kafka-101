@@ -94,7 +94,6 @@ services:
       - kafka2
       - kafka3
 
-
   kafka-connect:
     image: confluentinc/cp-kafka-connect:latest
     depends_on:
