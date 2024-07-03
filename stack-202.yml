@@ -101,9 +101,6 @@ services:
       - "9094:9094"
     networks:
       - kafka-net
-    configs:
-      - source: kafka_server_jaas_conf
-        target: /etc/kafka/kafka_server_jaas.conf
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
