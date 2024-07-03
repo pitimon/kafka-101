@@ -10,9 +10,6 @@ services:
       - "9092:9092"
     networks:
       - kafka-net
-    configs:
-      - source: kafka_server_jaas_conf
-        target: /etc/kafka/kafka_server_jaas.conf
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
@@ -31,6 +28,20 @@ services:
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: 'PLAIN'
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'true'
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_SASL_JAAS_CONFIG: |
+        KafkaServer {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret"
+           user_admin="admin-secret"
+           user_alice="alice-secret"
+           user_bob="bob-secret";
+        };
+        Client {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret";
+        };
     deploy:
       mode: replicated
       replicas: 1
@@ -47,9 +58,6 @@ services:
       - "9093:9093"
     networks:
       - kafka-net
-    configs:
-      - source: kafka_server_jaas_conf
-        target: /etc/kafka/kafka_server_jaas.conf
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
@@ -68,6 +76,20 @@ services:
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: 'PLAIN'
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'true'
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_SASL_JAAS_CONFIG: |
+        KafkaServer {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret"
+           user_admin="admin-secret"
+           user_alice="alice-secret"
+           user_bob="bob-secret";
+        };
+        Client {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret";
+        };
     volumes:
       - kafka-data-2:/var/lib/kafka/data
 
@@ -100,6 +122,20 @@ services:
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: 'PLAIN'
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'true'
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_SASL_JAAS_CONFIG: |
+        KafkaServer {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret"
+           user_admin="admin-secret"
+           user_alice="alice-secret"
+           user_bob="bob-secret";
+        };
+        Client {
+           org.apache.kafka.common.security.plain.PlainLoginModule required
+           username="admin"
+           password="admin-secret";
+        };
     volumes:
       - kafka-data-3:/var/lib/kafka/data
 
@@ -206,7 +242,3 @@ networks:
   kafka-net:
     driver: overlay
 
-configs:
-  kafka_server_jaas_conf:
-    external: true
-    name: kafka_server_jaas_conf  # ชื่อ Config ที่สร้างใน Portainer
