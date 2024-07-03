@@ -23,6 +23,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
       KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
     volumes:
       - kafka-data-1:/var/lib/kafka/data
 
