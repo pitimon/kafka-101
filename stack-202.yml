@@ -10,7 +10,7 @@ services:
       - "9092:9092"
     networks:
       - kafka-net
-    secrets:
+    configs:
       - source: kafka_server_jaas_conf
         target: /etc/kafka/kafka_server_jaas.conf
     environment:
@@ -47,7 +47,7 @@ services:
       - "9093:9093"
     networks:
       - kafka-net
-    secrets:
+    configs:
       - source: kafka_server_jaas_conf
         target: /etc/kafka/kafka_server_jaas.conf
     environment:
@@ -79,7 +79,7 @@ services:
       - "9094:9094"
     networks:
       - kafka-net
-    secrets:
+    configs:
       - source: kafka_server_jaas_conf
         target: /etc/kafka/kafka_server_jaas.conf
     environment:
@@ -206,7 +206,7 @@ networks:
   kafka-net:
     driver: overlay
 
-secrets:
+configs:
   kafka_server_jaas_conf:
     external: true
-    name: kafka_server_jaas_conf  # ชื่อ Secret ที่สร้างใน Portainer
+    name: kafka_server_jaas_conf  # ชื่อ Config ที่สร้างใน Portainer
