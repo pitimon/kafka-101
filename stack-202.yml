@@ -177,6 +177,17 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      # เพิ่มการตั้งค่า SASL
+      CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_SASL_MECHANISM: "PLAIN"
+      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
+      # ตั้งค่า producer และ consumer ให้ใช้ SASL
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_PRODUCER_SASL_MECHANISM: "PLAIN"
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_CONSUMER_SASL_MECHANISM: "PLAIN"
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
     networks:
       - kafka-net
     healthcheck:
