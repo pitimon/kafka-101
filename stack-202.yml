@@ -156,18 +156,18 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:29092,kafka2:29092,kafka3:29092
       KAFKA_CLUSTERS_0_METRICS_PORT: 9997
 
-  kafdrop:
-    image: obsidiandynamics/kafdrop:3.31.0-SNAPSHOT
-    depends_on:
-      - kafka1
-      - schema-registry
-    networks:
-      - kafka-net
-    ports:
-      - 19000:9000
-    environment:
-      KAFKA_BROKERCONNECT: "kafka1:29092,kafka2:29092,kafka3:29092"
-      CMD_ARGS: "--message.format=AVRO --message.keyFormat=DEFAULT --schemaregistry.connect=http://schema-registry:8081"
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop:3.31.0-SNAPSHOT
+  #   depends_on:
+  #     - kafka1
+  #     - schema-registry
+  #   networks:
+  #     - kafka-net
+  #   ports:
+  #     - 19000:9000
+  #   environment:
+  #     KAFKA_BROKERCONNECT: "kafka1:29092,kafka2:29092,kafka3:29092"
+  #     CMD_ARGS: "--message.format=AVRO --message.keyFormat=DEFAULT --schemaregistry.connect=http://schema-registry:8081"
 
 volumes:
   kafka-data-1:
