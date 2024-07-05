@@ -173,20 +173,20 @@ volumes:
   kafka-data-1:
      driver: local
      driver_opts:
-       type: "nfs"
-       o: "addr=172.16.34.9,nolock,soft,rw"
+       type: nfs
+       o: addr=172.16.34.9,nolock,soft,rw
        device: ":/mnt/june/swarm/202/kafka/1"
   kafka-data-2:
      driver: local
      driver_opts:
-       type: "nfs"
-       o: "addr=172.16.34.9,nolock,soft,rw"
+       type: nfs
+       o: addr=172.16.34.9,nolock,soft,rw
        device: ":/mnt/june/swarm/202/kafka/2"
   kafka-data-3:
    driver: local
    driver_opts:
-     type: "nfs"
-     o: "addr=172.16.34.9,nolock,soft,rw"
+     type: nfs
+     o: addr=172.16.34.9,nolock,soft,rw
      device: ":/mnt/june/swarm/202/kafka/3"
 
 networks:
