@@ -22,7 +22,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
-      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
     # deploy:
     #   mode: replicated
     #   replicas: 1
@@ -52,7 +52,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
-      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
     volumes:
       - kafka-data-2:/var/lib/kafka/data
 
@@ -77,7 +77,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
-      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
     volumes:
       - kafka-data-3:/var/lib/kafka/data
 
@@ -171,23 +171,23 @@ services:
 
 volumes:
   kafka-data-1:
-  #    driver: local
-  #    driver_opts:
-  #      type: "nfs"
-  #      o: "addr=10.202.1.231,nolock,soft,rw"
-  #      device: ":/var/nfs/general/kafka1"
+     driver: local
+     driver_opts:
+       type: "nfs"
+       o: "addr=172.16.34.9,nolock,soft,rw"
+       device: ":/mnt/june/swarm/202/kafka/1"
   kafka-data-2:
-  #    driver: local
-  #    driver_opts:
-  #      type: "nfs"
-  #      o: "addr=10.202.1.231,nolock,soft,rw"
-  #      device: ":/var/nfs/general/kafka2"
+     driver: local
+     driver_opts:
+       type: "nfs"
+       o: "addr=172.16.34.9,nolock,soft,rw"
+       device: ":/mnt/june/swarm/202/kafka/2"
   kafka-data-3:
-#    driver: local
-#    driver_opts:
-#      type: "nfs"
-#      o: "addr=10.202.1.231,nolock,soft,rw"
-#      device: ":/var/nfs/general/kafka3"
+   driver: local
+   driver_opts:
+     type: "nfs"
+     o: "addr=172.16.34.9,nolock,soft,rw"
+     device: ":/mnt/june/swarm/202/kafka/3"
 
 networks:
   kafka-net:
