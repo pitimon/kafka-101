@@ -123,11 +123,11 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
     networks:
       - kafka-net
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8083/"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redpanda-console:
     image: docker.redpanda.com/vectorized/console:latest
@@ -191,11 +191,11 @@ volumes:
   #    o: addr=172.16.34.9,rw
   #    device: ":/mnt/june/swarm/202/kafka/3"
   schema-registry-data:
-   driver: local
-   driver_opts:
-     type: nfs
-     o: addr=172.16.34.9,rw
-     device: ":/mnt/june/swarm/202/kafka/schema"
+  #  driver: local
+  #  driver_opts:
+  #    type: nfs
+  #    o: addr=172.16.34.9,rw
+  #    device: ":/mnt/june/swarm/202/kafka/schema"
   
 
 networks:
