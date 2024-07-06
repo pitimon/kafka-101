@@ -197,7 +197,6 @@ volumes:
      o: addr=172.16.34.9,rw
      device: ":/mnt/june/swarm/202/kafka/schema"
   
-
 networks:
   kafka-net:
     driver: overlay
