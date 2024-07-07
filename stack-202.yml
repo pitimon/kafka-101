@@ -98,7 +98,8 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka1:29092,kafka2:29092,kafka3:29092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
     volumes:
-      - schema-registry-data:/var/lib/schema-registry
+      - schema-registry-logs:/var/log/confluent
+      # - schema-registry-data:/var/lib/schema-registry
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:latest
@@ -173,23 +174,23 @@ services:
 
 volumes:
   kafka-data-1:
-     driver: local
-     driver_opts:
-       type: nfs
-       o: addr=172.16.34.9,rw
-       device: ":/mnt/june/swarm/202/kafka/1"
+    #  driver: local
+    #  driver_opts:
+    #    type: nfs
+    #    o: addr=172.16.34.9,rw
+    #    device: ":/mnt/june/swarm/202/kafka/1"
   kafka-data-2:
-     driver: local
-     driver_opts:
-       type: nfs
-       o: addr=172.16.34.9,rw
-       device: ":/mnt/june/swarm/202/kafka/2"
+    #  driver: local
+    #  driver_opts:
+    #    type: nfs
+    #    o: addr=172.16.34.9,rw
+    #    device: ":/mnt/june/swarm/202/kafka/2"
   kafka-data-3:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=172.16.34.9,rw
-      device: ":/mnt/june/swarm/202/kafka/3"
+    # driver: local
+    # driver_opts:
+    #   type: nfs
+    #   o: addr=172.16.34.9,rw
+    #   device: ":/mnt/june/swarm/202/kafka/3"
   schema-registry-data:
    driver: local
    driver_opts:
