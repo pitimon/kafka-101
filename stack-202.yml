@@ -186,11 +186,11 @@ volumes:
     #    o: addr=172.16.34.9,rw
     #    device: ":/mnt/june/swarm/202/kafka/2"
   kafka-data-3:
-    # driver: local
-    # driver_opts:
-    #   type: nfs
-    #   o: addr=172.16.34.9,rw
-    #   device: ":/mnt/june/swarm/202/kafka/3"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.34.9,rw
+      device: ":/mnt/june/swarm/202/kafka/3"
   schema-registry-logs:
    driver: local
    driver_opts:
