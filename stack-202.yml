@@ -97,8 +97,8 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka1:29092,kafka2:29092,kafka3:29092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
-    volumes:
-      - schema-registry-logs:/var/log/confluent
+    # volumes:
+    #   - schema-registry-logs:/var/log/confluent
       # - schema-registry-data:/var/lib/schema-registry
 
   kafka-connect:
@@ -191,7 +191,7 @@ volumes:
     #   type: nfs
     #   o: addr=172.16.34.9,rw
     #   device: ":/mnt/june/swarm/202/kafka/3"
-  schema-registry-logs:
+  # schema-registry-logs:
   #  driver: local
   #  driver_opts:
   #    type: nfs
