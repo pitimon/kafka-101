@@ -6,7 +6,7 @@ services:
     container_name: kafka1
     hostname: kafka1
     ports:
-      - "9092:9092"
+      - "${KAFKA_EXTERNAL_PORT:-9092}:9092"
     networks:
       - kafka-net
     environment:
@@ -14,14 +14,14 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
       KAFKA_LISTENERS: "INTERNAL://kafka1:29092,CONTROLLER://kafka1:29093,EXTERNAL://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://202.28.231.132:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://${KAFKA_ADVERTISED_HOST:-localhost}:${KAFKA_EXTERNAL_PORT:-9092}"
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093"
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
+      CLUSTER_ID: "${KAFKA_CLUSTER_ID:-ciWo7IWazngRchmPES6q5A==}"
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
     volumes:
       - kafka-data-1:/var/lib/kafka/data
@@ -32,8 +32,8 @@ services:
     hostname: schema-registry
     depends_on:
       - kafka1
-    # ports:
-    #   - "8081:8081"
+    ports:
+      - "${SCHEMA_REGISTRY_PORT:-8081}:8081"
     networks:
       - kafka-net
     environment:
@@ -45,8 +45,8 @@ services:
     image: confluentinc/cp-kafka-connect:latest
     depends_on:
       - kafka1
-    # ports:
-    #   - "8083:8083"
+    ports:
+      - "${KAFKA_CONNECT_PORT:-8083}:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "kafka1:29092"
       CONNECT_REST_PORT: 8083
@@ -71,7 +71,7 @@ services:
   redpanda-console:
     image: docker.redpanda.com/vectorized/console:latest
     ports:
-      - "8090:8080"
+      - "${REDPANDA_CONSOLE_PORT:-8090}:8080"
     networks:
       - kafka-net
     depends_on:
@@ -91,7 +91,7 @@ services:
     networks:
       - kafka-net
     ports:
-      - "8089:8080"
+      - "${KAFKA_UI_PORT:-8089}:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:29092
