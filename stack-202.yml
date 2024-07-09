@@ -2,7 +2,7 @@ version: "3"
 
 services:
   kafka1:
-    image: confluentinc/cp-kafka
+    image: confluentinc/cp-kafka:7.3.0
     container_name: kafka1
     hostname: kafka1
     ports:
@@ -11,17 +11,17 @@ services:
       - kafka-net
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT"
       KAFKA_LISTENERS: "INTERNAL://kafka1:29092,CONTROLLER://kafka1:29093,EXTERNAL://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://202.28.231.132:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://localhost:9092"
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093"
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
       KAFKA_SASL_ENABLED_MECHANISMS: "PLAIN"
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: "PLAIN"
@@ -47,13 +47,10 @@ services:
       - kafka-data-1:/var/lib/kafka/data
 
   schema-registry:
-    image: confluentinc/cp-schema-registry
+    image: confluentinc/cp-schema-registry:7.3.0
     container_name: schema-registry
-    hostname: schema-registry
     depends_on:
       - kafka1
-    # ports:
-    #   - "8081:8081"
     networks:
       - kafka-net
     environment:
@@ -68,12 +65,11 @@ services:
         password="schema-registry-secret";
 
   kafka-connect:
-    image: confluentinc/cp-kafka-connect:latest
+    image: confluentinc/cp-kafka-connect:7.3.0
+    container_name: kafka-connect
     depends_on:
       - kafka1
       - schema-registry
-    # ports:
-    #   - "8083:8083"
     networks:
       - kafka-net
     environment:
@@ -95,16 +91,12 @@ services:
         org.apache.kafka.common.security.plain.PlainLoginModule required \
         username="connect" \
         password="connect-secret";
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   redpanda-console:
-    image: docker.redpanda.com/vectorized/console:latest
+    image: docker.redpanda.com/vectorized/console:v2.2.3
+    container_name: redpanda-console
     ports:
-      - "8090:8080"
+      - "8080:8080"
     networks:
       - kafka-net
     depends_on:
@@ -115,29 +107,13 @@ services:
       KAFKA_BROKERS: "SASL_PLAINTEXT://kafka1:29092"
       KAFKA_SASL_ENABLED: "true"
       KAFKA_SASL_MECHANISM: "PLAIN"
-      KAFKA_SASL_USERNAME: "redpanda"
-      KAFKA_SASL_PASSWORD: "redpanda-secret"
+      KAFKA_SASL_USERNAME: "admin"
+      KAFKA_SASL_PASSWORD: "admin-secret"
+      KAFKA_TLS_ENABLED: "false"
+      KAFKA_SCHEMAREGISTRY_ENABLED: "true"
+      KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
       KAFKA_CONNECT_ENABLED: "true"
-      KAFKA_CONNECT_NAME: "connect-cluster"
-      KAFKA_CONNECT_URL: "http://kafka-connect:8083"
-      SCHEMA_REGISTRY_ENABLED: "true"
-      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      SCHEMA_REGISTRY_AUTH: ""
-      SCHEMA_REGISTRY_SSL_ENABLED: "false"
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    networks:
-      - kafka-net
-    ports:
-      - "8089:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:29092
-      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka-ui" password="kafka-ui-secret";
-      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+      KAFKA_CONNECT_URLS: "http://kafka-connect:8083"
 
 volumes:
   kafka-data-1:
