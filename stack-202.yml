@@ -1,9 +1,8 @@
-version: "3"
+version: "3.8"
 
 services:
   kafka1:
     image: confluentinc/cp-kafka:7.3.0
-    container_name: kafka1
     hostname: kafka1
     ports:
       - "9092:9092"
@@ -45,10 +44,14 @@ services:
         user_carol="carol-secret";
     volumes:
       - kafka-data-1:/var/lib/kafka/data
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.3.0
-    container_name: schema-registry
     depends_on:
       - kafka1
     networks:
@@ -63,10 +66,12 @@ services:
         org.apache.kafka.common.security.plain.PlainLoginModule required \
         username="schema-registry" \
         password="schema-registry-secret";
+    deploy:
+      mode: replicated
+      replicas: 1
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.3.0
-    container_name: kafka-connect
     depends_on:
       - kafka1
       - schema-registry
@@ -91,12 +96,14 @@ services:
         org.apache.kafka.common.security.plain.PlainLoginModule required \
         username="connect" \
         password="connect-secret";
+    deploy:
+      mode: replicated
+      replicas: 1
 
   redpanda-console:
     image: docker.redpanda.com/vectorized/console:v2.2.3
-    container_name: redpanda-console
     ports:
-      - "8090:8080"
+      - "8080:8080"
     networks:
       - kafka-net
     depends_on:
@@ -114,6 +121,9 @@ services:
       KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
       KAFKA_CONNECT_ENABLED: "true"
       KAFKA_CONNECT_URLS: "http://kafka-connect:8083"
+    deploy:
+      mode: replicated
+      replicas: 1
 
 volumes:
   kafka-data-1:
