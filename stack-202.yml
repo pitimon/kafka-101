@@ -17,27 +17,24 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093"
       KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      CLUSTER_ID: "${CLUSTER_ID}"
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
-      KAFKA_SASL_ENABLED_MECHANISMS: "PLAIN"
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: "PLAIN"
-      KAFKA_LISTENER_NAME_INTERNAL_SASL_ENABLED_MECHANISMS: "PLAIN"
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: "PLAIN"
-    configs:
-      - source: kafka_jaas_config
-        target: /etc/kafka/kafka_jaas.conf
-    secrets:
-      - kafka_admin_password
-      - kafka_alice_password
-      - kafka_bob_password
-      - kafka_carol_password
+      CLUSTER_ID: "${CLUSTER_ID}"
+    command: 
+      - sh
+      - -c
+      - |
+        echo "security.protocol=SASL_PLAINTEXT" >> /etc/kafka/kafka.properties
+        echo "sasl.mechanism=PLAIN" >> /etc/kafka/kafka.properties
+        echo "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-secret\" user_admin=\"admin-secret\" user_alice=\"alice-secret\" user_bob=\"bob-secret\" user_carol=\"carol-secret\";" >> /etc/kafka/kafka.properties
+        /etc/confluent/docker/run
     volumes:
-      - type: volume
-        source: kafka-data-1
-        target: /var/lib/kafka/data
+      - kafka-data-1:/var/lib/kafka/data
     deploy:
       mode: global
       placement:
