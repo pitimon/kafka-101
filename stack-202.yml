@@ -1,7 +1,5 @@
 version: "3.8"
-
 services:
-
   kafka1:
     image: confluentinc/cp-kafka:7.3.0
     hostname: {{.Node.Hostname}}-kafka1
