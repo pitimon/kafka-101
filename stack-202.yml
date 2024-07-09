@@ -1,102 +1,54 @@
-version: "3.8"
+version: "3"
 
 services:
   kafka1:
-    image: confluentinc/cp-kafka:7.3.0
-    hostname: ${HOSTNAME:-kafka1}
+    image: confluentinc/cp-kafka
+    container_name: kafka1
+    hostname: kafka1
     ports:
       - "9092:9092"
     networks:
       - kafka-net
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT"
-      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,EXTERNAL://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://${HOSTNAME:-kafka1}:29092,EXTERNAL://${HOSTNAME:-kafka1}:9092"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_LISTENERS: "INTERNAL://kafka1:29092,CONTROLLER://kafka1:29093,EXTERNAL://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://202.28.231.132:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093"
       KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
-      CLUSTER_ID: "p-qXqzpHRFOFB2OjPJQMQQ"
-    command: 
-      - sh
-      - -c
-      - |
-        echo "security.protocol=SASL_PLAINTEXT" >> /etc/kafka/kafka.properties
-        echo "sasl.mechanism=PLAIN" >> /etc/kafka/kafka.properties
-        echo "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username=\"admin\" \
-        password=\"${KAFKA_ADMIN_PASSWORD}\" \
-        user_admin=\"${KAFKA_ADMIN_PASSWORD}\" \
-        user_alice=\"${KAFKA_ALICE_PASSWORD}\" \
-        user_bob=\"${KAFKA_BOB_PASSWORD}\" \
-        user_carol=\"${KAFKA_CAROL_PASSWORD}\" \
-        user_schema-registry=\"${SCHEMA_REGISTRY_PASSWORD}\" \
-        user_connect=\"${CONNECT_PASSWORD}\";" >> /etc/kafka/kafka.properties
-        /etc/confluent/docker/run
     volumes:
       - kafka-data-1:/var/lib/kafka/data
-    secrets:
-      - kafka_admin_password
-      - kafka_alice_password
-      - kafka_bob_password
-      - kafka_carol_password
-      - schema_registry_password
-      - connect_password
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.labels.kafka-broker == true
-    healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.3.0
-    hostname: ${HOSTNAME:-schema-registry}
+    image: confluentinc/cp-schema-registry
+    container_name: schema-registry
+    hostname: schema-registry
+    depends_on:
+      - kafka1
+    ports:
+      - "8081:8081"
     networks:
       - kafka-net
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SASL_PLAINTEXT://kafka1:29092"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka1:29092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
-      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "PLAIN"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="schema-registry" \
-        password="${SCHEMA_REGISTRY_PASSWORD}";
-    secrets:
-      - schema_registry_password
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.schema-registry == true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   kafka-connect:
-    image: confluentinc/cp-kafka-connect:7.3.0
-    hostname: ${HOSTNAME:-kafka-connect}
-    networks:
-      - kafka-net
+    image: confluentinc/cp-kafka-connect:latest
+    depends_on:
+      - kafka1
+    ports:
+      - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: "SASL_PLAINTEXT://kafka1:29092"
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:29092"
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: "connect-cluster"
       CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
@@ -106,83 +58,48 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "${HOSTNAME:-kafka-connect}"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-      CONNECT_SASL_MECHANISM: "PLAIN"
-      CONNECT_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="connect" \
-        password="${CONNECT_PASSWORD}";
-    secrets:
-      - connect_password
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.kafka-connect == true
-      restart_policy:
-        condition: on-failure
-        delay: 30s
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  redpanda-console:
-    image: docker.redpanda.com/vectorized/console:v2.2.3
-    hostname: ${HOSTNAME:-redpanda-console}
-    ports:
-      - "8080:8080"
     networks:
       - kafka-net
-    environment:
-      KAFKA_BROKERS: "SASL_PLAINTEXT://kafka1:29092"
-      KAFKA_SASL_ENABLED: "true"
-      KAFKA_SASL_MECHANISM: "PLAIN"
-      KAFKA_SASL_USERNAME: "admin"
-      KAFKA_SASL_PASSWORD: "${KAFKA_ADMIN_PASSWORD}"
-      KAFKA_TLS_ENABLED: "false"
-      KAFKA_SCHEMAREGISTRY_ENABLED: "true"
-      KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
-      KAFKA_CONNECT_ENABLED: "true"
-      KAFKA_CONNECT_URLS: "http://kafka-connect:8083"
-    secrets:
-      - kafka_admin_password
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.redpanda-console == true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+
+  redpanda-console:
+    image: docker.redpanda.com/vectorized/console:latest
+    ports:
+      - "8090:8080"
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka-connect
+    environment:
+      KAFKA_BROKERS: "kafka1:29092"
+      KAFKA_CONNECT_ENABLED: "true"
+      KAFKA_CONNECT_NAME: "connect-cluster"
+      KAFKA_CONNECT_URL: "http://kafka-connect:8083"
+      SCHEMA_REGISTRY_ENABLED: "true"
+      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      SCHEMA_REGISTRY_AUTH: ""
+      SCHEMA_REGISTRY_SSL_ENABLED: "false"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    networks:
+      - kafka-net
+    ports:
+      - "8089:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
 
 volumes:
   kafka-data-1:
-    driver: local
 
 networks:
   kafka-net:
     driver: overlay
-    driver_opts:
-      encrypted: "true"
-
-secrets:
-  kafka_admin_password:
-    external: true
-  kafka_alice_password:
-    external: true
-  kafka_bob_password:
-    external: true
-  kafka_carol_password:
-    external: true
-  schema_registry_password:
-    external: true
-  connect_password:
-    external: true
