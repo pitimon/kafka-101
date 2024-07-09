@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   kafka1:
-    image: confluentinc/cp-kafka
+    image: confluentinc/cp-kafka:7.3.0
     hostname: ${HOSTNAME:-kafka1}
     ports:
       - "9092:9092"
@@ -31,10 +31,25 @@ services:
       - |
         echo "security.protocol=SASL_PLAINTEXT" >> /etc/kafka/kafka.properties
         echo "sasl.mechanism=PLAIN" >> /etc/kafka/kafka.properties
-        echo "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-secret\" user_admin=\"admin-secret\" user_alice=\"alice-secret\" user_bob=\"bob-secret\" user_carol=\"carol-secret\";" >> /etc/kafka/kafka.properties
+        echo "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
+        username=\"admin\" \
+        password=\"${KAFKA_ADMIN_PASSWORD}\" \
+        user_admin=\"${KAFKA_ADMIN_PASSWORD}\" \
+        user_alice=\"${KAFKA_ALICE_PASSWORD}\" \
+        user_bob=\"${KAFKA_BOB_PASSWORD}\" \
+        user_carol=\"${KAFKA_CAROL_PASSWORD}\" \
+        user_schema-registry=\"${SCHEMA_REGISTRY_PASSWORD}\" \
+        user_connect=\"${CONNECT_PASSWORD}\";" >> /etc/kafka/kafka.properties
         /etc/confluent/docker/run
     volumes:
       - kafka-data-1:/var/lib/kafka/data
+    secrets:
+      - kafka_admin_password
+      - kafka_alice_password
+      - kafka_bob_password
+      - kafka_carol_password
+      - schema_registry_password
+      - connect_password
     deploy:
       mode: global
       placement:
@@ -48,7 +63,7 @@ services:
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.3.0
-    hostname: 
+    hostname: ${HOSTNAME:-schema-registry}
     networks:
       - kafka-net
     environment:
@@ -57,11 +72,12 @@ services:
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "PLAIN"
+      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.plain.PlainLoginModule required \
+        username="schema-registry" \
+        password="${SCHEMA_REGISTRY_PASSWORD}";
     secrets:
       - schema_registry_password
-    configs:
-      - source: schema_registry_jaas_config
-        target: /etc/schema-registry/schema-registry_jaas.conf
     deploy:
       mode: replicated
       replicas: 1
@@ -90,21 +106,25 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "{{.Node.Hostname}}-kafka-connect"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "${HOSTNAME:-kafka-connect}"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       CONNECT_SASL_MECHANISM: "PLAIN"
+      CONNECT_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.plain.PlainLoginModule required \
+        username="connect" \
+        password="${CONNECT_PASSWORD}";
     secrets:
       - connect_password
-    configs:
-      - source: connect_jaas_config
-        target: /etc/kafka/connect_jaas.conf
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
           - node.labels.kafka-connect == true
+      restart_policy:
+        condition: on-failure
+        delay: 30s
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083"]
       interval: 30s
@@ -122,13 +142,15 @@ services:
       KAFKA_BROKERS: "SASL_PLAINTEXT://kafka1:29092"
       KAFKA_SASL_ENABLED: "true"
       KAFKA_SASL_MECHANISM: "PLAIN"
+      KAFKA_SASL_USERNAME: "admin"
+      KAFKA_SASL_PASSWORD: "${KAFKA_ADMIN_PASSWORD}"
       KAFKA_TLS_ENABLED: "false"
       KAFKA_SCHEMAREGISTRY_ENABLED: "true"
       KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
       KAFKA_CONNECT_ENABLED: "true"
       KAFKA_CONNECT_URLS: "http://kafka-connect:8083"
     secrets:
-      - redpanda_console_password
+      - kafka_admin_password
     deploy:
       mode: replicated
       replicas: 1
@@ -151,14 +173,6 @@ networks:
     driver_opts:
       encrypted: "true"
 
-configs:
-  kafka_jaas_config:
-    external: true
-  schema_registry_jaas_config:
-    external: true
-  connect_jaas_config:
-    external: true
-
 secrets:
   kafka_admin_password:
     external: true
@@ -172,5 +186,4 @@ secrets:
     external: true
   connect_password:
     external: true
-  redpanda_console_password:
-    external: true
+    
