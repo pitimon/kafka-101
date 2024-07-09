@@ -98,7 +98,8 @@ services:
       CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       CONNECT_SASL_MECHANISM: "PLAIN"
     secrets:
-      - connect_password
+      - source: connect_password
+        target: CONNECT_PASSWORD
     configs:
       - source: connect_jaas_config
         target: /etc/kafka/connect_jaas.conf
@@ -108,6 +109,9 @@ services:
       placement:
         constraints:
           - node.labels.kafka-connect == true
+      restart_policy:
+        condition: on-failure
+        delay: 30s
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083"]
       interval: 30s
