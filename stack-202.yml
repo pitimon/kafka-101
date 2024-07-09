@@ -51,8 +51,7 @@ services:
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.3.0
-    depends_on:
-      - kafka1
+    hostname: {{.Node.Hostname}}-schema-registry
     networks:
       - kafka-net
     environment:
@@ -61,19 +60,26 @@ services:
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "PLAIN"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="schema-registry" \
-        password="schema-registry-secret";
+    secrets:
+      - schema_registry_password
+    configs:
+      - source: schema_registry_jaas_config
+        target: /etc/schema-registry/schema-registry_jaas.conf
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.schema-registry == true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.3.0
-    depends_on:
-      - kafka1
-      - schema-registry
+    hostname: {{.Node.Hostname}}-kafka-connect
     networks:
       - kafka-net
     environment:
@@ -87,42 +93,56 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "{{.Node.Hostname}}-kafka-connect"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
       CONNECT_SASL_MECHANISM: "PLAIN"
-      CONNECT_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="connect" \
-        password="connect-secret";
+    secrets:
+      - connect_password
+    configs:
+      - source: connect_jaas_config
+        target: /etc/kafka/connect_jaas.conf
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.kafka-connect == true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redpanda-console:
     image: docker.redpanda.com/vectorized/console:v2.2.3
+    hostname: {{.Node.Hostname}}-redpanda-console
     ports:
       - "8080:8080"
     networks:
       - kafka-net
-    depends_on:
-      - kafka1
-      - schema-registry
-      - kafka-connect
     environment:
       KAFKA_BROKERS: "SASL_PLAINTEXT://kafka1:29092"
       KAFKA_SASL_ENABLED: "true"
       KAFKA_SASL_MECHANISM: "PLAIN"
-      KAFKA_SASL_USERNAME: "admin"
-      KAFKA_SASL_PASSWORD: "admin-secret"
       KAFKA_TLS_ENABLED: "false"
       KAFKA_SCHEMAREGISTRY_ENABLED: "true"
       KAFKA_SCHEMAREGISTRY_URLS: "http://schema-registry:8081"
       KAFKA_CONNECT_ENABLED: "true"
       KAFKA_CONNECT_URLS: "http://kafka-connect:8083"
+    secrets:
+      - redpanda_console_password
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.redpanda-console == true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   kafka-data-1:
@@ -137,6 +157,10 @@ networks:
 configs:
   kafka_jaas_config:
     external: true
+  schema_registry_jaas_config:
+    external: true
+  connect_jaas_config:
+    external: true
 
 secrets:
   kafka_admin_password:
@@ -146,4 +170,10 @@ secrets:
   kafka_bob_password:
     external: true
   kafka_carol_password:
+    external: true
+  schema_registry_password:
+    external: true
+  connect_password:
+    external: true
+  redpanda_console_password:
     external: true
