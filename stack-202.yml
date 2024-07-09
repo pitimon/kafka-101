@@ -32,8 +32,8 @@ services:
     hostname: schema-registry
     depends_on:
       - kafka1
-    ports:
-      - "8081:8081"
+    # ports:
+    #   - "8081:8081"
     networks:
       - kafka-net
     environment:
@@ -45,8 +45,8 @@ services:
     image: confluentinc/cp-kafka-connect:latest
     depends_on:
       - kafka1
-    ports:
-      - "8083:8083"
+    # ports:
+    #   - "8083:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "kafka1:29092"
       CONNECT_REST_PORT: 8083
