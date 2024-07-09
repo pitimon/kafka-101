@@ -12,7 +12,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
       KAFKA_LISTENERS: "INTERNAL://kafka1:29092,CONTROLLER://kafka1:29093,EXTERNAL://0.0.0.0:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka1:29092,EXTERNAL://202.28.231.132:9092"
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
@@ -23,26 +23,6 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       CLUSTER_ID: "ciWo7IWazngRchmPES6q5A=="
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
-      KAFKA_SASL_ENABLED_MECHANISMS: "PLAIN"
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: "PLAIN"
-      KAFKA_LISTENER_NAME_INTERNAL_SASL_ENABLED_MECHANISMS: "PLAIN"
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: "PLAIN"
-      KAFKA_LISTENER_NAME_INTERNAL_PLAIN_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="admin" \
-        password="admin-secret" \
-        user_admin="admin-secret" \
-        user_alice="alice-secret" \
-        user_bob="bob-secret" \
-        user_carol="carol-secret";
-      KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="admin" \
-        password="admin-secret" \
-        user_admin="admin-secret" \
-        user_alice="alice-secret" \
-        user_bob="bob-secret" \
-        user_carol="carol-secret";
     volumes:
       - kafka-data-1:/var/lib/kafka/data
 
@@ -52,32 +32,23 @@ services:
     hostname: schema-registry
     depends_on:
       - kafka1
-    # ports:
-    #   - "8081:8081"
+    ports:
+      - "8081:8081"
     networks:
       - kafka-net
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SASL_PLAINTEXT://kafka1:29092"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka1:29092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
-      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "PLAIN"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="schema-registry" \
-        password="schema-registry-secret";
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:latest
     depends_on:
       - kafka1
-      - schema-registry
-    # ports:
-    #   - "8083:8083"
-    networks:
-      - kafka-net
+    ports:
+      - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: "SASL_PLAINTEXT://kafka1:29092"
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:29092"
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: "connect-cluster"
       CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
@@ -89,12 +60,8 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-      CONNECT_SASL_MECHANISM: "PLAIN"
-      CONNECT_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="connect" \
-        password="connect-secret";
+    networks:
+      - kafka-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/"]
       interval: 30s
@@ -108,15 +75,9 @@ services:
     networks:
       - kafka-net
     depends_on:
-      - kafka1
-      - schema-registry
       - kafka-connect
     environment:
-      KAFKA_BROKERS: "SASL_PLAINTEXT://kafka1:29092"
-      KAFKA_SASL_ENABLED: "true"
-      KAFKA_SASL_MECHANISM: "PLAIN"
-      KAFKA_SASL_USERNAME: "redpanda"
-      KAFKA_SASL_PASSWORD: "redpanda-secret"
+      KAFKA_BROKERS: "kafka1:29092"
       KAFKA_CONNECT_ENABLED: "true"
       KAFKA_CONNECT_NAME: "connect-cluster"
       KAFKA_CONNECT_URL: "http://kafka-connect:8083"
@@ -134,9 +95,6 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:29092
-      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka-ui" password="kafka-ui-secret";
       KAFKA_CLUSTERS_0_METRICS_PORT: 9997
 
 volumes:
